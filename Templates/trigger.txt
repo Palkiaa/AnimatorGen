@@ -1,0 +1,13 @@
+private const string #NAME#_Trigger = "#NAME_RAW#";
+
+public void #NAME#(bool execute = true)
+{
+    if (execute)
+    {
+        #ANIMATOR#.SetTrigger(#NAME#_Trigger);
+    }
+    else
+    {
+        #ANIMATOR#.ResetTrigger(#NAME#_Trigger);
+    }
+}

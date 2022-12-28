@@ -1,0 +1,13 @@
+private const string #NAME#_Int = "#NAME_RAW#";
+private int _#NAME#;
+
+public int #NAME#
+{
+    get => _#NAME#;
+    set
+    {
+        _#NAME# = value;
+        if (#ANIMATOR#)
+            #ANIMATOR#.SetInteger(#NAME#_Int, value);
+    }
+}

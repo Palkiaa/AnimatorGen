@@ -1,0 +1,12 @@
+{
+  "name": "com.spaghetti.animator-gen",
+  "version": "1.0.0",
+  "displayName": "Animator Gen",
+  "description": "Generate's a class to interact with your Animator controllers",
+  "unity": "2020.3",
+  "author": {
+    "name": "Palkiaa",
+    "url": "https://github.com/Palkiaa"
+  },
+  "type": "tool"
+}

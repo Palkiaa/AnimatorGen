@@ -1,0 +1,11 @@
+public class #CLASSNAME#
+{
+    internal Animator #ANIMATOR#;
+    
+    public #CLASSNAME#(Animator animator)
+    {
+        #ANIMATOR# = animator;
+    }
+
+    #PARAMETERS#
+}

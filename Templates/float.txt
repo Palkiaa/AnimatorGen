@@ -1,0 +1,13 @@
+private const string #NAME#_Float = "#NAME_RAW#";
+private float _#NAME#;
+
+public float #NAME#
+{
+    get => _#NAME#;
+    set
+    {
+        _#NAME# = value;
+        if (#ANIMATOR#)
+            #ANIMATOR#.SetFloat(#NAME#_Float, value);
+    }
+}

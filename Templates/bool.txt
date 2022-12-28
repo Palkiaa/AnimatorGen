@@ -1,0 +1,13 @@
+private const string #NAME#_Bool = "#NAME_RAW#";
+private bool _#NAME#;
+
+public bool #NAME#
+{
+    get => _#NAME#;
+    set
+    {
+        _#NAME# = value;
+        if (#ANIMATOR#)
+            #ANIMATOR#.SetBool(#NAME#_Bool, value);
+    }
+}
