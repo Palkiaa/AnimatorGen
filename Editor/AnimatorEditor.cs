@@ -91,11 +91,14 @@ namespace AnimatorGen.Editor
                 LoadSettings(InstanceId);
             }
 
-            if (GUILayout.Button("Apply"))
+            if (GUILayout.Button("Save"))//Apply
             {
                 AnimGenSettings.instance.SetSettings(Settings);
                 AnimGenSettings.instance.SaveSettings();
+            }
 
+            if (GUILayout.Button("Re-generate"))
+            {
                 var generator = new AnimatorControllerGenerator();
                 var code = generator.GenerateCode(animator, Settings);
 

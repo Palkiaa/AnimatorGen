@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 using UnityEditor;
 
-[FilePath("AnimGenSettings/AnimGenSettings.json", FilePathAttribute.Location.PreferencesFolder)]
+[FilePath("AnimGenSettings/AnimGenSettings.json", FilePathAttribute.Location.ProjectFolder)]
 internal class AnimGenSettings : ScriptableSingleton<AnimGenSettings>
 {
     public List<AnimatorSettings> AnimatorSettings;
