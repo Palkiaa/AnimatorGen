@@ -9,7 +9,7 @@ internal class AnimGenSettings : ScriptableSingleton<AnimGenSettings>
 
     public void SetSettings(AnimatorSettings animatorSettings)
     {
-        var index = AnimatorSettings.FindIndex(s => s.InstanceId == animatorSettings.InstanceId);
+        var index = AnimatorSettings.FindIndex(s => s.AssetId == animatorSettings.AssetId);
         if (0 <= index)
         {
             AnimatorSettings[index] = animatorSettings;
@@ -20,9 +20,9 @@ internal class AnimGenSettings : ScriptableSingleton<AnimGenSettings>
         EditorUtility.SetDirty(this);
     }
 
-    public AnimatorSettings GetSettings(int instanceId)
+    public AnimatorSettings GetSettings(GUID assetId)
     {
-        var index = AnimatorSettings.FindIndex(s => s.InstanceId == instanceId);
+        var index = AnimatorSettings.FindIndex(s => s.AssetId == assetId);
         if (0 <= index)
         {
             return new AnimatorSettings(AnimatorSettings[index]);

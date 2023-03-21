@@ -13,7 +13,15 @@ namespace AnimatorGen.Editor
     {
         private AnimatorSettings Settings;
 
-        private int InstanceId => target.GetInstanceID();
+        private GUID AssetId
+        {
+            get
+            {
+                var path = AssetDatabase.GetAssetPath(target.GetInstanceID());
+                GUID guid = AssetDatabase.GUIDFromAssetPath(path);
+                return guid;
+            }
+        }
 
         private GUIStyle FileExplorerButton => new GUIStyle(GUI.skin.button)
         {
@@ -22,18 +30,18 @@ namespace AnimatorGen.Editor
 
         public override VisualElement CreateInspectorGUI()
         {
-            LoadSettings(InstanceId);
+            LoadSettings(AssetId);
             return base.CreateInspectorGUI();
         }
 
-        private void LoadSettings(int instanceId)
+        private void LoadSettings(GUID assetId)
         {
-            Settings = AnimGenSettings.instance.GetSettings(instanceId);
+            Settings = AnimGenSettings.instance.GetSettings(assetId);
             if (Settings == null)
             {
                 Settings = new AnimatorSettings
                 {
-                    InstanceId = instanceId
+                    AssetId = assetId
                 };
             }
         }
@@ -88,7 +96,7 @@ namespace AnimatorGen.Editor
             if (GUILayout.Button("Revert"))
             {
                 GUI.FocusControl(string.Empty);
-                LoadSettings(InstanceId);
+                LoadSettings(AssetId);
             }
 
             if (GUILayout.Button("Save"))//Apply

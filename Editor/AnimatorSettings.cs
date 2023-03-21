@@ -1,9 +1,28 @@
 using System;
 
+using UnityEditor;
+
 [Serializable]
 public class AnimatorSettings
 {
-    public int InstanceId;
+    public GUID AssetId
+    {
+        get
+        {
+            if (GUID.TryParse(assetId, out var guid))
+            {
+                return guid;
+            }
+
+            return new GUID();
+        }
+        set
+        {
+            assetId = value.ToString();
+        }
+    }
+
+    public string assetId;
     public bool GenerateCode;
     public bool AutoGenerateCode;
     public string ClassFile;
@@ -19,7 +38,7 @@ public class AnimatorSettings
 
     public AnimatorSettings(AnimatorSettings animatorSettings)
     {
-        InstanceId = animatorSettings.InstanceId;
+        AssetId = animatorSettings.AssetId;
         AutoGenerateCode = animatorSettings.AutoGenerateCode;
         GenerateCode = animatorSettings.GenerateCode;
         ClassFile = animatorSettings.ClassFile;
