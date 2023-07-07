@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using AnimatorGen.Settings;
 using UnityEditor.Animations;
-
 using UnityEngine;
 
-namespace AnimatorGen.Editor
+namespace AnimatorGen
 {
     public class AnimatorControllerGenerator
     {
@@ -126,7 +125,7 @@ namespace AnimatorGen.Editor
             }
 
             var animatorTag = "#ANIMATOR#";
-            controllerClass = ReplaceContent(controllerClass, animatorTag, "Animator");
+            controllerClass = ReplaceContent(controllerClass, animatorTag, "_animator");
 
             return controllerClass;
         }

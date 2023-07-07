@@ -1,5 +1,5 @@
 private readonly string #NAME#_Layer = "#NAME_RAW#";
-private int _#NAME#_Index => Animator.GetLayerIndex(#NAME#_Layer);
+private int _#NAME#_Index => #ANIMATOR#.GetLayerIndex(#NAME#_Layer);
 
 public float #NAME#_LayerWeight
 {

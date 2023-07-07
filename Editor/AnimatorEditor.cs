@@ -1,17 +1,18 @@
 ﻿using System.IO;
-
+using System.Linq;
+using AnimatorGen.Settings;
 using UnityEditor;
 using UnityEditor.Animations;
-
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace AnimatorGen.Editor
+namespace AnimatorGen
 {
     [CustomEditor(typeof(AnimatorController))]
-    public class AnimatorEditor : UnityEditor.Editor
+    public class AnimatorEditor : Editor
     {
-        private AnimatorSettings Settings;
+        private AnimatorSettings _originalSettings;
+        private AnimatorSettings _settings;
 
         private GUID AssetId
         {
@@ -23,7 +24,7 @@ namespace AnimatorGen.Editor
             }
         }
 
-        private GUIStyle FileExplorerButton => new GUIStyle(GUI.skin.button)
+        private GUIStyle FileExplorerButton => new(GUI.skin.button)
         {
             fixedWidth = 30
         };
@@ -36,14 +37,16 @@ namespace AnimatorGen.Editor
 
         private void LoadSettings(GUID assetId)
         {
-            Settings = AnimGenSettings.instance.GetSettings(assetId);
-            if (Settings == null)
+            _settings = AnimGenSettings.GetSettings(assetId);
+            if (_settings == null)
             {
-                Settings = new AnimatorSettings
+                _settings = new AnimatorSettings
                 {
                     AssetId = assetId
                 };
             }
+
+            _originalSettings = new AnimatorSettings(_settings);
         }
 
         public override void OnInspectorGUI()
@@ -61,93 +64,144 @@ namespace AnimatorGen.Editor
             GUILayout.Space(EditorGUIUtility.singleLineHeight);
 
             EditorGUI.BeginChangeCheck();
-            Settings.GenerateCode = EditorGUILayout.Toggle("Generate C# Class", Settings.GenerateCode);
-            Settings.AutoGenerateCode = EditorGUILayout.Toggle("Auto generate class", Settings.AutoGenerateCode);
+            _settings.GenerateCode = EditorGUILayout.Toggle("Generate C# Class", _settings.GenerateCode);
+            _settings.AutoGenerateCode = EditorGUILayout.Toggle("Auto generate class", _settings.AutoGenerateCode);
 
-            GUI.enabled = Settings.GenerateCode;
+            GUI.enabled = _settings.GenerateCode;
 
             GUILayout.BeginHorizontal();
-            Settings.ClassFile = EditorGUILayout.TextField("C# Class File", Settings.ClassFile);
+            _settings.ClassFile = EditorGUILayout.TextField("C# Class File", _settings.ClassFile);
             if (GUILayout.Button("...", FileExplorerButton))
             {
                 var path = EditorUtility.SaveFilePanelInProject($"AnimatorController Class for '{animator.name}'", animator.name, "cs", "Location in which to save the generated animator controller class file.");
                 if (!string.IsNullOrWhiteSpace(path))
                 {
-                    Settings.ClassFile = path;
+                    _settings.ClassFile = path;
+                    Repaint();
                 }
             }
 
             GUILayout.EndHorizontal();
-            Settings.ClassName = EditorGUILayout.TextField("C# Class Name", Settings.ClassName);
-            Settings.ClassNamespace = EditorGUILayout.TextField("C# Class Namespace", Settings.ClassNamespace);
+            _settings.ClassName = EditorGUILayout.TextField("C# Class Name", _settings.ClassName);
+            _settings.ClassNamespace = EditorGUILayout.TextField("C# Class Namespace", _settings.ClassNamespace);
 
-            Settings.CreateParameters = EditorGUILayout.Toggle("Create parameters", Settings.CreateParameters);
-            Settings.CreateLayers = EditorGUILayout.Toggle("Create layers", Settings.CreateLayers);
-
-            GUI.enabled = true;
+            _settings.CreateParameters = EditorGUILayout.Toggle("Create parameters", _settings.CreateParameters);
+            _settings.CreateLayers = EditorGUILayout.Toggle("Create layers", _settings.CreateLayers);
 
             if (EditorGUI.EndChangeCheck())
             {
-                AnimGenSettings.instance.SetSettings(Settings);
+                AnimGenSettings.SetSettings(_settings);
             }
 
             GUILayout.BeginHorizontal();
 
+            GUI.enabled = true;
+
             if (GUILayout.Button("Revert"))
             {
                 GUI.FocusControl(string.Empty);
-                LoadSettings(AssetId);
+                _settings = new AnimatorSettings(_originalSettings);
+                Repaint();
             }
 
             if (GUILayout.Button("Save"))//Apply
             {
-                AnimGenSettings.instance.SetSettings(Settings);
-                AnimGenSettings.instance.SaveSettings();
+                AnimGenSettings.SetSettings(_settings);
+                AnimGenSettings.SaveSettings();
             }
+
+            GUI.enabled = _settings.GenerateCode;
 
             if (GUILayout.Button("Re-generate"))
             {
                 var generator = new AnimatorControllerGenerator();
-                var code = generator.GenerateCode(animator, Settings);
+                var code = generator.GenerateCode(animator, _settings);
 
-                var outputPath = Path.GetFullPath(Settings.ClassFile);
+                var outputPath = Path.GetFullPath(_settings.ClassFile);
 
                 File.WriteAllText(outputPath, code);
                 AssetDatabase.Refresh();
             }
+
+            GUI.enabled = true;
 
             GUILayout.EndHorizontal();
 
             //EditorGUILayout.Space();
             GUILayout.Space(EditorGUIUtility.singleLineHeight);
 
-            EditorGUILayout.LabelField("Default animator prameter values:");
-            for (int i = 0; i < animator.parameters.Length; i++)
-            {
-                var item = animator.parameters[i];
+            DoParameters(animator);
 
-                string label = $"{item.type,-8} - {item.name}";
+            base.OnInspectorGUI();
+        }
+
+        private void DoParameters(AnimatorController animator)
+        {
+            EditorGUILayout.LabelField("Default animator prameter values:");
+            var parametersDirty = false;
+
+            var parameters = animator.parameters.Select(s => s.Copy()).ToList();
+
+            for (int i = 0; i < parameters.Count; i++)
+            {
+                var item = parameters[i];
+
+                var type = item.type.ToString();
+
+                var label = $"{type}\t - {item.name}";
                 switch (item.type)
                 {
                     case AnimatorControllerParameterType.Float:
-                        item.defaultFloat = EditorGUILayout.FloatField(label, item.defaultFloat);
+                        var newFloat = EditorGUILayout.FloatField(label, item.defaultFloat);
+
+                        if (item.defaultFloat != newFloat)
+                        {
+                            item.defaultFloat = newFloat;
+                            parametersDirty = true;
+                        }
                         break;
 
                     case AnimatorControllerParameterType.Int:
-                        item.defaultInt = EditorGUILayout.IntField(label, item.defaultInt);
+                        var newInt = EditorGUILayout.IntField(label, item.defaultInt);
+
+                        if (item.defaultInt != newInt)
+                        {
+                            item.defaultInt = newInt;
+                            parametersDirty = true;
+                        }
                         break;
 
                     case AnimatorControllerParameterType.Bool:
-                        item.defaultBool = EditorGUILayout.Toggle(label, item.defaultBool);
+                        var newBool = EditorGUILayout.Toggle(label, item.defaultBool);
+
+                        if (item.defaultBool != newBool)
+                        {
+                            item.defaultBool = newBool;
+                            parametersDirty = true;
+                        }
                         break;
 
                     case AnimatorControllerParameterType.Trigger:
+                        GUI.enabled = false;
                         EditorGUILayout.LabelField(label);
+                        GUI.enabled = true;
                         break;
                 }
             }
 
-            base.OnInspectorGUI();
+            if (parametersDirty)
+            {
+                var currentParameters = animator.parameters.ToList();
+
+                //Because we can only add/remove parameters and not alter the original list:
+                //The idea is when adding it here it's a new object/reference
+                //and likewise when removing we're removing the original object references with the old value(s)
+                foreach (var parameter in parameters)
+                    animator.AddParameter(parameter);
+
+                foreach (var parameter in currentParameters)
+                    animator.RemoveParameter(parameter);
+            }
         }
     }
 }
