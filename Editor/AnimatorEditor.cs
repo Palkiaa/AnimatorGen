@@ -19,7 +19,7 @@ namespace AnimatorGen
             get
             {
                 var path = AssetDatabase.GetAssetPath(target.GetInstanceID());
-                GUID guid = AssetDatabase.GUIDFromAssetPath(path);
+                var guid = AssetDatabase.GUIDFromAssetPath(path);
                 return guid;
             }
         }
@@ -53,8 +53,13 @@ namespace AnimatorGen
         {
             var animator = target as AnimatorController;
 
+            //the inspector in the Unity Search window doesn't call the CreateInspectorGUI
+            //so this is just to load in the data where it didn't before
+            if (_settings == null)
+                LoadSettings(AssetId);
+
             EditorGUILayout.LabelField($"Animator name: {animator.name}");
-            if (animator != null && GUILayout.Button("Open Animator"))
+            if (GUILayout.Button("Open Animator"))
             {
                 EditorApplication.ExecuteMenuItem("Window/Animation/Animator");
                 AssetDatabase.OpenAsset(animator.GetInstanceID());
